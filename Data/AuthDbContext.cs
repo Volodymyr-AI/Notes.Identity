@@ -28,5 +28,15 @@ namespace Notes.Identity.Data
 
             builder.ApplyConfiguration(new AppUserConfiguration());
         }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var connectionString = configuration.GetConnectionString("DbConnection");
+            optionsBuilder.UseSqlServer(connectionString);
+        }
     }
 }
