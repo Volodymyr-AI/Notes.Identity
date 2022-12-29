@@ -5,7 +5,7 @@ using Notes.Identity.Models;
 
 namespace Notes.Identity.Controllers
 {
-   
+
     public class AuthController : Controller
     {
         private readonly SignInManager<AppUser> _signInManager;
@@ -34,7 +34,7 @@ namespace Notes.Identity.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel loginViewModel)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return View(loginViewModel);
             }
@@ -47,12 +47,51 @@ namespace Notes.Identity.Controllers
 
             var result = await _signInManager.PasswordSignInAsync(loginViewModel.Username,
                 loginViewModel.Password, false, false);
-            if(result.Succeeded)
+            if (result.Succeeded)
             {
-                return Redirect(loginViewModel.ReturnUrl);  
+                return Redirect(loginViewModel.ReturnUrl);
             }
             ModelState.AddModelError(string.Empty, "Login error");
             return View(loginViewModel);
+        }
+
+        [HttpGet]
+        public IActionResult Register(string returnUrl)
+        {
+            var ViewModel = new RegisterViewModel
+            {
+                ReturnUrl = returnUrl
+            };
+            return View(returnUrl);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(viewModel);
+            }
+            var user = new AppUser
+            {
+                UserName = viewModel.Username
+            };
+
+            var result = await _userManager.CreateAsync(user, viewModel.Password);
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, false);
+                return Redirect(viewModel.ReturnUrl);
+            }
+            ModelState.AddModelError(string.Empty, "Error accurred");
+            return View(viewModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Logout(string logoutId)
+        {
+            await _signInManager.SignOutAsync();
+            var logoutRequest = await _interactionService.GetLogoutContextAsync(logoutId);
+            return Redirect(logoutRequest.PostLogoutRedirectUri);
         }
     }
 }
