@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Notes.Identity.Models;
 using Microsoft.AspNetCore.Identity;
+using System.Net.NetworkInformation;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
 
 namespace Notes.Identity
 {
@@ -44,6 +47,8 @@ namespace Notes.Identity
                 config.LogoutPath = "/Auth/Logout";
             });
 
+            builder.Services.AddControllersWithViews();
+
    
             var app = builder.Build();
 
@@ -62,8 +67,19 @@ namespace Notes.Identity
                     logger.LogError(ex, "An error occurred while app initialization");
                 }
             }
-           
+
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(builder.Environment.ContentRootPath, "Styles")),
+                RequestPath = "/styles"
+
+            });
             app.UseRouting();
+
+            
+            app.MapDefaultControllerRoute();
+
             app.UseIdentityServer();
             app.Run();
         }
